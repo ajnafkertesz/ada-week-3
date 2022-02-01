@@ -1,0 +1,52 @@
+---
+title: "Week 3"
+author: "Ajna Kertesz"
+date: "2/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## dplyr verbs and EDA
+
+# NA: not avilable
+# Inf: the result of a numerical calculation is too extreme for R to express
+# NaN: R cannot express the results of a calculation (e.g., root of a negative number)
+
+```{r verbs and EDA}
+
+library(sjmisc)
+library(tidyverse)
+
+f<- "https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/KamilarAndCooperData.csv"
+d<- read_csv(f, col_names=T) #creates a "tibble
+
+head(d)
+
+library(skimr)
+library(kableExtra)
+
+```
+
+
+#Challange
+
+```{r challange}
+
+s<-mutate (d, Binomial = paste(Genus, Species, sep = " ")) %>%
+  select(Binomial,
+         Family,
+         Brain_Size_Species_Mean,
+         Body_mass_male_mean) %>%
+  group_by(Family) %>%
+  summarise(
+    avgF = mean(Brain_Size_Species_Mean, na.rm = TRUE),
+    avgM = mean(Body_mass_male_mean, na.rm = TRUE)
+    )%>%
+  arrange(desc(avgF))
+
+s
+
+```
