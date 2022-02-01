@@ -42,10 +42,10 @@ s<-mutate (d, Binomial = paste(Genus, Species, sep = " ")) %>%
          Body_mass_male_mean) %>%
   group_by(Family) %>%
   summarise(
-    avgF = mean(Brain_Size_Species_Mean, na.rm = TRUE),
+    avgB = mean(Brain_Size_Species_Mean, na.rm = TRUE),
     avgM = mean(Body_mass_male_mean, na.rm = TRUE)
     )%>%
-  arrange(desc(avgF))
+  arrange((avgB))
 
 s
 
