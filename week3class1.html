@@ -190,19 +190,6 @@ pre code {
 ## #   MaxLongevity_m &lt;dbl&gt;, LitterSz &lt;dbl&gt;, Life_History_Ref &lt;chr&gt;,
 ## #   GR_MidRangeLat_dd &lt;dbl&gt;, Precip_Mean_mm &lt;dbl&gt;, Temp_Mean_degC &lt;dbl&gt;, …</code></pre>
 <p>#Challange</p>
-<pre class="r"><code>s&lt;-mutate (d, Binomial = paste(Genus, Species, sep = &quot; &quot;)) %&gt;%
-  select(Binomial,
-         Family,
-         Brain_Size_Species_Mean,
-         Body_mass_male_mean) %&gt;%
-  group_by(Family) %&gt;%
-  summarise(
-    avgB = mean(Brain_Size_Species_Mean, na.rm = TRUE),
-    avgM = mean(Body_mass_male_mean, na.rm = TRUE)
-    )%&gt;%
-  arrange((avgB))
-
-s</code></pre>
 <pre><code>## # A tibble: 14 × 3
 ##    Family            avgB   avgM
 ##    &lt;chr&gt;            &lt;dbl&gt;  &lt;dbl&gt;
