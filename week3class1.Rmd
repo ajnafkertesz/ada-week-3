@@ -9,25 +9,248 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Challange 3
+## Chapter 9 Challenges
 
-```{r verbs and EDA, echo=FALSE, warning=FALSE, message=FALSE}
+```{r chapter 9, echo=FALSE, warning=FALSE, message=FALSE}
 
 library(sjmisc)
 library(tidyverse)
+library(skimr)
+library(kableExtra)
+library(curl)
+
 
 f<- "https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/KamilarAndCooperData.csv"
 d<- read_csv(f, col_names=T) #creates a "tibble
 
 head(d)
+names(d)
+summary(d)
 
-library(skimr)
-library(kableExtra)
+f1 <- curl("https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/Country-Data-2016.csv")
+d1 <- read.csv(f1, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+d1 <- as_tibble(d1) # I like tibbles!
+head(d1)
+
+median(d1$area, na.rm=TRUE)
+median(d1$population, na.rm=TRUE)
+
+d1$density <- d1$population/d1$area
+d1 <- d1[order(d1$density, decreasing = TRUE),] # or
+d1 <- d1[order(-d1$density),]
+d1[1:10,]
+
+d1 <- d1[order(d1$density),]
+d1[1:10,]
+
+s1 <- d1[order(-d1$population),]
+s1 <- s1[1:20,]
+med_area <- median(s1$area, na.rm = TRUE)
+med_area
+
+med_pop <- median(s1$population, na.rm = TRUE)
+med_pop
+
+s1 <- d1[grep(pattern = "^[A-F]", d1$country),]
+summary(s1)
+
+s1 <- filter(d1, grepl(pattern = "^[A-F]", country))
+summary(s1)
+
+mean(s1$population, na.rm = TRUE)
+
+mean(s1$area, na.rm = TRUE)
+
+s1 <- skim(d1) # the main `skimr()` function
+s1 %>% filter(skim_type == "numeric") %>%
+  rename(variable=skim_variable, missing=n_missing, mean=numeric.mean,
+         sd=numeric.sd, min=numeric.p0, p25=numeric.p25, median=numeric.p50,
+         p75=numeric.p75, max=numeric.p100, hist=numeric.hist) %>%
+  select(variable, missing, mean, sd, min, median, max, hist) %>%
+  # drop p25 and p75 for purposes of display
+  kable() %>%
+  kable_styling(font_size = 10)
+
+detach(package:skimr)
+detach(package:kableExtra)
+
+library(summarytools)
+s1 <- descr(d1, style = "rmarkdown", transpose = TRUE)
+# %>% to view() print nicely formatted table to viewer
+s1 %>% summarytools::view()
+s1 <- dfSummary(d1, style = "grid", plain.ascii = FALSE)
+s1 %>% summarytools::view()
+detach(package:summarytools)
+
+library(dataMaid)
+# this code below produces a formated report, with the type of report
+# specified by `output=`
+makeDataReport(d1,
+  output = "html",
+  file = "~/Desktop/dataMaid-output.Rmd",
+  replace = TRUE)
+detach(package:dataMaid)
 
 ```
 
 
-#Challange
+#9.5 Challenges
+
+```{r 9.5 challanges, echo=FALSE, warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(dplyr)
+
+par(mfrow = c(1, 2))
+d1$log_population <- log(d1$population)
+d1$log_area <- log(d1$area)
+boxplot(d1$population, ylab = "Population")
+boxplot(d1$area, ylab = "Area")
+
+barplot(d1$population, xlab = "Case", ylab = "Population")
+dotchart(d1$population, xlab = "Population", ylab = "Case")
+
+barplot(d1$area, xlab = "Case", ylab = "Area")
+dotchart(d1$area, xlab = "Area", ylab = "Case")
+
+boxplot(d1$log_population, ylab = "log(Population)")
+boxplot(d1$log_area, ylab = "log(Area)")
+
+
+par(mfrow = c(1, 2))
+attach(d1) 
+hist(
+  log(population),
+  freq = FALSE,
+  col = "red",
+  main = "Plot 1",
+  xlab = "log(population size)",
+  ylab = "density",
+  ylim = c(0, 0.2)
+)
+hist(
+  log(area),
+  freq = FALSE,
+  col = "red",
+  main = "Plot 2",
+  xlab = "log(area)",
+  ylab = "density",
+  ylim = c(0, 0.2)
+)
+
+
+hist(
+  log(area),
+  freq = FALSE,
+  col = "red",
+  main = "Plot 2",
+  xlab = "log(area)",
+  ylab = "density",
+  ylim = c(0, 0.2)
+)
+#abline(v = mean(log(area), na.rm = TRUE)) #doesn't run :(
+
+t <- sort(table(d1$govt_form), decreasing=TRUE)
+t
+
+t <-
+  group_by(d1, govt_form) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+t
+
+```
+# 9.6 Challenge
+```{r 96 challange, echo=FALSE, warning=FALSE, message= FALSE}
+library(readr)
+
+f <- "https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/KamilarAndCooperData.csv"
+d <- read_csv(f, col_names = TRUE)
+head(d)
+
+
+library(skimr)
+library(kableExtra)
+
+s <- skim(d) 
+s %>%
+  filter(skim_variable == "Scientific_Name" | skim_type == "numeric") %>%
+  rename(variable=skim_variable, missing=n_missing, mean=numeric.mean,
+    sd=numeric.sd, min=numeric.p0, p25=numeric.p25, median=numeric.p50,
+    p75=numeric.p75, max=numeric.p100, hist=numeric.hist) %>%
+  select(variable, missing, mean, sd, min, median, max, hist) %>%
+  kable() %>%
+  kable_styling(font_size = 10)
+
+boxplot(log(d$Body_mass_female_mean)~d$Family)
+
+p <- ggplot(data=d, aes(x=Family, y=log(Body_mass_female_mean)))
+p <- p + geom_boxplot(na.rm=TRUE)
+p <- p + theme(axis.text.x=element_text(angle=90))
+p <- p + ylab("log(Female Body Mass)")
+p
+
+par(mfrow=c(1,2))
+plot(x = d$Body_mass_female_mean, y = d$Brain_Size_Female_Mean)
+plot(x = log(d$Body_mass_female_mean), y = log(d$Brain_Size_Female_Mean))
+
+
+p <- ggplot(data=d, aes(x=log(Body_mass_female_mean),
+                                                y=log(Brain_Size_Female_Mean),
+                                                color = factor(Family)
+                                                )) 
+p <- p + xlab("log(Female Body Mass)") + ylab("log(Female Brain Size)")
+p <- p + geom_point(na.rm=TRUE)
+p <- p + theme(legend.position="bottom", legend.title=element_blank())
+p
+
+library(ggExtra)
+ggMarginal(p, type = "densigram") 
+
+ggMarginal(p, type = "violin") 
+
+p <- p + facet_wrap(~ Family, ncol=4) 
+p <- p + theme(legend.position="none")
+p
+
+#adding a regression line
+p <- p + geom_smooth(method="lm", fullrange=FALSE, na.rm=TRUE)
+p
+
+p <- ggplot(data=d, aes(x=log(Body_mass_female_mean),
+  y=log(MaxLongevity_m)))
+p <- p + geom_point(na.rm = TRUE)
+p <- p + geom_smooth(method="lm", na.rm = TRUE)
+p
+
+
+
+s <-
+  select(d,
+    c(
+      "Brain_Size_Female_Mean",
+      "Body_mass_female_mean",
+      "MeanGroupSize",
+      "WeaningAge_d",
+      "MaxLongevity_m",
+      "HomeRange_km2",
+      "DayLength_km"
+    )
+  )
+pairs(s[,1:ncol(s)]) 
+
+
+library(car)
+scatterplotMatrix(s,
+  smooth = TRUE,
+  regLine = list(method = lm, lty = 1, lwd = 2),
+  ellipse = TRUE,
+  upper.panel = NULL
+)
+
+```
+
+# Challenge from class
 
 ```{r challange, echo=FALSE, warning=FALSE, message=FALSE}
 
